@@ -11,13 +11,16 @@ class BloodDonationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-
+      // Provider is scoped as DEEP as possible, only wrapping the interactive content.
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          child: ChangeNotifierProvider<BloodDonationProvider>(
+            create: (_) => BloodDonationProvider(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
               // Search Bar
               _buildSearchBar(),
               const SizedBox(height: 24),
@@ -53,9 +56,10 @@ class BloodDonationScreen extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Conditional titles based on selection
-              Consumer<BloodDonationProvider>(
-                builder: (context, provider, child) {
-                  if (provider.selectedSegment == 0) {
+              Selector<BloodDonationProvider, int>(
+                selector: (_, p) => p.selectedSegment,
+                builder: (context, selectedSegment, _) {
+                  if (selectedSegment == 0) {
                     return _buildDonorsHeader();
                   } else {
                     return _buildActiveRequestsHeader();
@@ -66,24 +70,24 @@ class BloodDonationScreen extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Content based on selection
-              Expanded(
-                child: Consumer<BloodDonationProvider>(
-                  builder: (context, provider, child) {
-                    if (provider.selectedSegment == 0) {
-                      return _buildDonorsList(context);
-                    } else {
-                      return _buildActiveRequestsList(context);
-                    }
-                  },
-                ),
+              Selector<BloodDonationProvider, int>(
+                selector: (_, p) => p.selectedSegment,
+                builder: (context, selectedSegment, _) {
+                  return Expanded(
+                    child: selectedSegment == 0
+                        ? _buildDonorsList(context)
+                        : _buildActiveRequestsList(context),
+                  );
+                },
               ),
 
               const SizedBox(height: 16),
 
               // Register Button (only for Find Donors)
-              Consumer<BloodDonationProvider>(
-                builder: (context, provider, child) {
-                  if (provider.selectedSegment == 0) {
+              Selector<BloodDonationProvider, int>(
+                selector: (_, p) => p.selectedSegment,
+                builder: (context, selectedSegment, _) {
+                  if (selectedSegment == 0) {
                     return _buildRegisterButton(context);
                   }
                   return const SizedBox.shrink();
@@ -93,7 +97,7 @@ class BloodDonationScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
+      ));
   }
 
   Widget _buildDonorsHeader() {
@@ -161,8 +165,6 @@ class BloodDonationScreen extends StatelessWidget {
   }
 
   Widget _buildToggleButtons(BuildContext context) {
-    final provider = Provider.of<BloodDonationProvider>(context, listen: false);
-
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
@@ -172,14 +174,15 @@ class BloodDonationScreen extends StatelessWidget {
         children: [
           // Find Donors Button
           Expanded(
-            child: GestureDetector(
-              onTap: () => provider.selectFindDonors(),
-              child: Consumer<BloodDonationProvider>(
-                builder: (context, provider, child) {
-                  return Container(
+            child: Selector<BloodDonationProvider, int>(
+              selector: (_, p) => p.selectedSegment,
+              builder: (context, selectedSegment, child) {
+                return GestureDetector(
+                  onTap: () => context.read<BloodDonationProvider>().selectFindDonors(),
+                  child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      color: provider.selectedSegment == 0
+                      color: selectedSegment == 0
                           ? const Color(0xFF00A89D)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(10),
@@ -189,28 +192,29 @@ class BloodDonationScreen extends StatelessWidget {
                         'Find Donors',
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w600,
-                          color: provider.selectedSegment == 0
+                          color: selectedSegment == 0
                               ? Colors.white
                               : Colors.grey.shade600,
                         ),
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
           ),
 
           // Active Requests Button
           Expanded(
-            child: GestureDetector(
-              onTap: () => provider.selectActiveRequests(),
-              child: Consumer<BloodDonationProvider>(
-                builder: (context, provider, child) {
-                  return Container(
+            child: Selector<BloodDonationProvider, int>(
+              selector: (_, p) => p.selectedSegment,
+              builder: (context, selectedSegment, child) {
+                return GestureDetector(
+                  onTap: () => context.read<BloodDonationProvider>().selectActiveRequests(),
+                  child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      color: provider.selectedSegment == 1
+                      color: selectedSegment == 1
                           ? const Color(0xFFE53935)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(10),
@@ -220,15 +224,15 @@ class BloodDonationScreen extends StatelessWidget {
                         'Active Requests',
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w600,
-                          color: provider.selectedSegment == 1
+                          color: selectedSegment == 1
                               ? Colors.white
                               : Colors.grey.shade600,
                         ),
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -253,20 +257,20 @@ class BloodDonationScreen extends StatelessWidget {
         const SizedBox(height: 8),
         SizedBox(
           height: 50,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: bloodTypes.length,
-            itemBuilder: (context, index) {
-              return Consumer<BloodDonationProvider>(
-                builder: (context, provider, child) {
-                  final isSelected =
-                      provider.selectedBloodType == bloodTypes[index];
+          child: Selector<BloodDonationProvider, String?>(
+            selector: (_, p) => p.selectedBloodType,
+            builder: (context, selectedBloodType, child) {
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: bloodTypes.length,
+                itemBuilder: (context, index) {
+                  final isSelected = selectedBloodType == bloodTypes[index];
                   return Container(
                     margin: EdgeInsets.only(
                       right: index == bloodTypes.length - 1 ? 0 : 8,
                     ),
                     child: GestureDetector(
-                      onTap: () => provider.selectBloodType(bloodTypes[index]),
+                      onTap: () => context.read<BloodDonationProvider>().selectBloodType(bloodTypes[index]),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -336,8 +340,9 @@ class BloodDonationScreen extends StatelessWidget {
   }
 
   Widget _buildDonorsList(BuildContext context) {
-    return Consumer<BloodDonationProvider>(
-      builder: (context, provider, child) {
+    return Selector<BloodDonationProvider, String?>(
+      selector: (_, p) => p.selectedBloodType,
+      builder: (context, selectedBloodType, child) {
         // Filter donors based on selected blood type
         List<Map<String, dynamic>> allDonors = [
           {
@@ -378,11 +383,11 @@ class BloodDonationScreen extends StatelessWidget {
         ];
 
         // Apply filter if a blood type is selected
-        final filteredDonors = provider.selectedBloodType == null
+        final filteredDonors = selectedBloodType == null
             ? allDonors
             : allDonors
                   .where(
-                    (donor) => donor['bloodType'] == provider.selectedBloodType,
+                    (donor) => donor['bloodType'] == selectedBloodType,
                   )
                   .toList();
 
@@ -398,7 +403,7 @@ class BloodDonationScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No donors found for ${provider.selectedBloodType}',
+                  'No donors found for $selectedBloodType',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     color: Colors.grey.shade600,
@@ -432,8 +437,9 @@ class BloodDonationScreen extends StatelessWidget {
   }
 
   Widget _buildActiveRequestsList(BuildContext context) {
-    return Consumer<BloodDonationProvider>(
-      builder: (context, provider, child) {
+    return Selector<BloodDonationProvider, String?>(
+      selector: (_, p) => p.selectedBloodType,
+      builder: (context, selectedBloodType, child) {
         // Filter active requests based on selected blood type
         List<Map<String, dynamic>> allRequests = [
           {
@@ -474,12 +480,12 @@ class BloodDonationScreen extends StatelessWidget {
         ];
 
         // Apply filter if a blood type is selected
-        final filteredRequests = provider.selectedBloodType == null
+        final filteredRequests = selectedBloodType == null
             ? allRequests
             : allRequests
                   .where(
                     (request) =>
-                        request['bloodType'] == provider.selectedBloodType,
+                        request['bloodType'] == selectedBloodType,
                   )
                   .toList();
 
@@ -495,7 +501,7 @@ class BloodDonationScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No requests found for ${provider.selectedBloodType}',
+                  'No requests found for $selectedBloodType',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     color: Colors.grey.shade600,

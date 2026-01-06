@@ -1,39 +1,55 @@
 import 'package:flutter/material.dart';
 
+/// Optimized: Fine-grained state fields for segment, blood type, loading, and error.
 class BloodDonationProvider with ChangeNotifier {
-  int _selectedSegment = 0; // 0 for Find Donors, 1 for Active Requests
-  String? _selectedBloodType; // Track selected blood type filter
-
+  // --- Donor/Request segment (0 = Find Donors, 1 = Active Requests)
+  int _selectedSegment = 0;
   int get selectedSegment => _selectedSegment;
-  String? get selectedBloodType => _selectedBloodType;
-
   set selectedSegment(int value) {
-    _selectedSegment = value;
-    notifyListeners();
+    if (_selectedSegment != value) {
+      _selectedSegment = value;
+      notifyListeners();
+    }
   }
+  void selectFindDonors() => selectedSegment = 0;
+  void selectActiveRequests() => selectedSegment = 1;
 
-  void selectFindDonors() {
-    _selectedSegment = 0;
-    notifyListeners();
-  }
-
-  void selectActiveRequests() {
-    _selectedSegment = 1;
-    notifyListeners();
-  }
-
+  // --- Blood Type Filter
+  String? _selectedBloodType;
+  String? get selectedBloodType => _selectedBloodType;
   void selectBloodType(String bloodType) {
     if (_selectedBloodType == bloodType) {
-      // Deselect if same blood type is clicked again
       _selectedBloodType = null;
     } else {
       _selectedBloodType = bloodType;
     }
     notifyListeners();
   }
-
   void clearBloodTypeFilter() {
-    _selectedBloodType = null;
-    notifyListeners();
+    if (_selectedBloodType != null) {
+      _selectedBloodType = null;
+      notifyListeners();
+    }
+  }
+
+  // --- Loading (placeholder for future loading state)
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+  set isLoading(bool val) {
+    if (_isLoading != val) {
+      _isLoading = val;
+      notifyListeners();
+    }
+  }
+
+  // --- Error (placeholder)
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+  set errorMessage(String? val) {
+    if (_errorMessage != val) {
+      _errorMessage = val;
+      notifyListeners();
+    }
   }
 }
+
