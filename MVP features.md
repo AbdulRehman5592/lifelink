@@ -3,6 +3,7 @@ Blood\_donation:
 Features:
 
 1)Display the Blood requests on the screen
+2)view all button shows all the donors in the firebase in a single scroll view
 
 User authentication
 
