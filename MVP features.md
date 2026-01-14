@@ -1,5 +1,9 @@
 Blood\_donation:
 
+Features:
+
+1)Display the Blood requests on the screen
+
 User authentication
 
 getDonor
@@ -21,5 +25,7 @@ sendbloodRequest
 * requested\_by
 * created\_at
 
+Post-MVP
 
+1)implement s function that calculates eligibility for donation by looking at time after last donation (should be 3 months)
 

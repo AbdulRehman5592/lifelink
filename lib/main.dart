@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lifelink/models/donor_model.dart';
 import 'package:lifelink/providers/organ_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:lifelink/screens/home_screen.dart';
@@ -23,6 +24,7 @@ void main() async {
   // Initialize Firebase
   await FirebaseService.initialize();
   await FirestoreInitializer.initializeSampleData();
+  await FirestoreInitializer.seedSampleDonors();
   runApp(
     MultiProvider(
       providers: [
@@ -144,4 +146,70 @@ class FirestoreInitializer {
       }
     }
   }
+  
+ static Future<void> seedSampleDonors() async {
+    final firestore = FirebaseFirestore.instance;
+
+    try {
+      // If at least one donor exists, do nothing.
+      final snapshot = await firestore.collection('donors').limit(1).get();
+      if (snapshot.docs.isNotEmpty) {
+        debugPrint('[Seeder] Donors already present. Skipping seed.');
+        return;
+      }
+
+      // Prepare sample donors (ABO/Rh types commonly used)
+      final samples = <DonorModel>[
+        DonorModel(
+          userId: 'user_001',
+          fullName: 'Abdul Rehman',
+          bloodType: 'B+',
+          isAvailable: true,
+          status: DonorStatus.active,
+        ),
+        DonorModel(
+          userId: 'user_002',
+          fullName: 'Sara Ahmed',
+          bloodType: 'O-',
+          isAvailable: true,
+          status: DonorStatus.verified,
+        ),
+        DonorModel(
+          userId: 'user_003',
+          fullName: 'Ali Raza',
+          bloodType: 'A+',
+          isAvailable: false,
+          status: DonorStatus.active,
+        ),
+        DonorModel(
+          userId: 'user_004',
+          fullName: 'Fatima Noor',
+          bloodType: 'AB+',
+          isAvailable: true,
+          status: DonorStatus.active,
+        ),
+        DonorModel(
+          userId: 'user_005',
+          fullName: 'Hamza Khan',
+          bloodType: 'O+',
+          isAvailable: true,
+          status: DonorStatus.suspended,
+        ),
+      ];
+
+      // Batch insert so it is atomic & efficient
+      final batch = firestore.batch();
+      for (final donor in samples) {
+        final docRef = firestore.collection('donors').doc(donor.userId);
+        batch.set(docRef, donor.toMap(), SetOptions(merge: true));
+      }
+      await batch.commit();
+
+      debugPrint('[Seeder] Seeded ${samples.length} sample donors.');
+    } catch (e) {
+      debugPrint('[Seeder] Failed to seed donors: $e');
+      // Swallowing errors so app can still boot; you may rethrow if desired
+    }
+  }
+
 }

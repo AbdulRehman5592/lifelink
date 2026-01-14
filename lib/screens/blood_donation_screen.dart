@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import '../models/donor_model.dart';
 import '../providers/blood_donation_provider.dart';
+import '../repositories/blood_repository.dart';
 
 class BloodDonationScreen extends StatelessWidget {
   const BloodDonationScreen({super.key});
@@ -339,102 +341,114 @@ class BloodDonationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDonorsList(BuildContext context) {
-    return Selector<BloodDonationProvider, String?>(
-      selector: (_, p) => p.selectedBloodType,
-      builder: (context, selectedBloodType, child) {
-        // Filter donors based on selected blood type
-        List<Map<String, dynamic>> allDonors = [
-          {
-            'bloodType': 'A+',
-            'name': 'Ahmed Khan',
-            'isVerified': true,
-            'distance': '2.3 km',
-            'lastDonated': '3 months ago',
-          },
-          {
-            'bloodType': 'O-',
-            'name': 'Sara Ali',
-            'isVerified': true,
-            'distance': '4.1 km',
-            'lastDonated': '45 days ago',
-          },
-          {
-            'bloodType': 'B+',
-            'name': 'Bilal Hussain',
-            'isVerified': false,
-            'distance': '5.8 km',
-            'lastDonated': '2 months ago',
-          },
-          {
-            'bloodType': 'A+',
-            'name': 'Ali Raza',
-            'isVerified': true,
-            'distance': '1.5 km',
-            'lastDonated': '1 month ago',
-          },
-          {
-            'bloodType': 'O-',
-            'name': 'Fatima Khan',
-            'isVerified': false,
-            'distance': '3.2 km',
-            'lastDonated': '2 weeks ago',
-          },
-        ];
 
-        // Apply filter if a blood type is selected
-        final filteredDonors = selectedBloodType == null
-            ? allDonors
-            : allDonors
-                  .where(
-                    (donor) => donor['bloodType'] == selectedBloodType,
-                  )
+Widget _buildDonorsList(BuildContext context) {
+  return Selector<BloodDonationProvider, String?>(
+    selector: (_, p) => p.selectedBloodType,
+    builder: (context, selectedBloodType, child) {
+      return StreamBuilder<List<DonorModel>>(
+        stream: BloodRepository().getDonors(), // Firestore stream
+        builder: (context, snapshot) {
+          // Hardcoded fallback donors
+          List<Map<String, dynamic>> fallbackDonors = [
+            {
+              'bloodType': 'A+',
+              'name': 'Ahmed Khan',
+              'isVerified': true,
+              'distance': '2.3 km',
+              'lastDonated': '3 months ago',
+            },
+            {
+              'bloodType': 'O-',
+              'name': 'Sara Ali',
+              'isVerified': true,
+              'distance': '4.1 km',
+              'lastDonated': '45 days ago',
+            },
+            {
+              'bloodType': 'B+',
+              'name': 'Bilal Hussain',
+              'isVerified': false,
+              'distance': '5.8 km',
+              'lastDonated': '2 months ago',
+            },
+            {
+              'bloodType': 'A+',
+              'name': 'Ali Raza',
+              'isVerified': true,
+              'distance': '1.5 km',
+              'lastDonated': '1 month ago',
+            },
+            {
+              'bloodType': 'O-',
+              'name': 'Fatima Khan',
+              'isVerified': false,
+              'distance': '3.2 km',
+              'lastDonated': '2 weeks ago',
+            },
+          ];
+
+          // If Firestore has data, map it; else use fallback
+          List<Map<String, dynamic>> donorsList;
+          if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+            donorsList = snapshot.data!
+                .map((donor) => {
+                      'bloodType': donor.bloodType,
+                      'name': donor.fullName,
+                      'isVerified': donor.status == DonorStatus.verified,
+                      'distance': 'N/A', // You can calculate based on location later
+                      'lastDonated': 'Recently', // Placeholder
+                    })
+                .toList();
+          } else {
+            donorsList = fallbackDonors;
+          }
+
+          // Apply filter
+          final filteredDonors = selectedBloodType == null
+              ? donorsList
+              : donorsList
+                  .where((donor) => donor['bloodType'] == selectedBloodType)
                   .toList();
 
-        if (filteredDonors.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.people_outline,
-                  size: 64,
-                  color: Colors.grey.shade400,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'No donors found for $selectedBloodType',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    color: Colors.grey.shade600,
+          if (filteredDonors.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.people_outline, size: 64, color: Colors.grey.shade400),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No donors found for $selectedBloodType',
+                    style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey.shade600),
                   ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return ListView.builder(
-          itemCount: filteredDonors.length,
-          itemBuilder: (context, index) {
-            final donor = filteredDonors[index];
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: index == filteredDonors.length - 1 ? 0 : 12,
-              ),
-              child: _buildDonorCard(
-                bloodType: donor['bloodType'],
-                name: donor['name'],
-                isVerified: donor['isVerified'],
-                distance: donor['distance'],
-                lastDonated: donor['lastDonated'],
+                ],
               ),
             );
-          },
-        );
-      },
-    );
-  }
+          }
+
+          return ListView.builder(
+            itemCount: filteredDonors.length,
+            itemBuilder: (context, index) {
+              final donor = filteredDonors[index];
+              return Padding(
+                padding: EdgeInsets.only(bottom: index == filteredDonors.length - 1 ? 0 : 12),
+                child: _buildDonorCard(
+                  bloodType: donor['bloodType'],
+                  name: donor['name'],
+                  isVerified: donor['isVerified'],
+                  distance: donor['distance'],
+                  lastDonated: donor['lastDonated'],
+                ),
+              );
+            },
+          );
+        },
+      );
+    },
+  );
+}
+
 
   Widget _buildActiveRequestsList(BuildContext context) {
     return Selector<BloodDonationProvider, String?>(
