@@ -1,5 +1,3 @@
-
-
 enum DonorStatus { active, inactive, suspended, verified }
 
 class DonorModel {
@@ -7,6 +5,8 @@ class DonorModel {
   String userId;
   String fullName;
   String bloodType;
+  String? gender;
+  DateTime? dateOfBirth;
   bool isAvailable;
   DonorStatus status;
 
@@ -16,6 +16,8 @@ class DonorModel {
     required this.userId,
     required this.fullName,
     required this.bloodType,
+    this.gender,
+    this.dateOfBirth,
     this.isAvailable = true,
     this.status = DonorStatus.active,
 
@@ -26,6 +28,9 @@ class DonorModel {
       'userId': userId,
       'fullName': fullName,
       'bloodType': bloodType,
+      'gender': gender,
+      'dateOfBirth':
+          dateOfBirth != null ? dateOfBirth!.millisecondsSinceEpoch : null,
       'isAvailable': isAvailable,
       'status': status.toString().split('.').last,
       'updatedAt': DateTime.now().millisecondsSinceEpoch,
@@ -38,6 +43,10 @@ class DonorModel {
       userId: map['userId'] ?? '',
       fullName: map['fullName'] ?? '',
       bloodType: map['bloodType'] ?? '',
+      gender: map['gender'],
+      dateOfBirth: map['dateOfBirth'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['dateOfBirth'])
+          : null,
       isAvailable: map['isAvailable'] ?? true,
       status: DonorStatus.values.firstWhere(
         (e) => e.toString() == 'DonorStatus.${map['status']}',
@@ -53,6 +62,8 @@ class DonorModel {
     String? userId,
     String? fullName,
     String? bloodType,
+    String? gender,
+    DateTime? dateOfBirth,
     bool? isAvailable,
     DonorStatus? status,
   }) {
@@ -61,6 +72,8 @@ class DonorModel {
       userId: userId ?? this.userId,
       fullName: fullName ?? this.fullName,
       bloodType: bloodType ?? this.bloodType,
+      gender: gender ?? this.gender,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       isAvailable: isAvailable ?? this.isAvailable,
       status: status ?? this.status,
     );

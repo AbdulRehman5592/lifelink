@@ -31,6 +31,8 @@ class AuthProvider with ChangeNotifier {
     required String fullName,
     required String phone,
     required String bloodType,
+    String? gender,
+    DateTime? dateOfBirth,
   }) async {
     try {
       _isLoading = true;
@@ -48,6 +50,8 @@ class AuthProvider with ChangeNotifier {
         fullName: fullName,
         phoneNumber: phone,
         bloodType: bloodType,
+        gender: gender,
+        dateOfBirth: dateOfBirth,
         createdAt: DateTime.now(),
         badges: [],
         totalDonations: 0,

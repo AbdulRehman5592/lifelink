@@ -1,6 +1,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:lifelink/main.dart';
 import 'package:lifelink/screens/login.dart';
 
 import '../screens/home_screen.dart';
@@ -36,7 +37,7 @@ class AuthGate extends StatelessWidget {
         // Optional: if you require email verification
         // if (!user.emailVerified) return const VerifyEmailScreen();
 
-        return const HomeScreen();
+        return const MainScreen();
       },
     );
   }

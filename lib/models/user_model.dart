@@ -6,6 +6,8 @@ class UserModel {
   final String fullName;
   final String phoneNumber;
   final String bloodType;
+  final String? gender;
+  final DateTime? dateOfBirth;
   final DateTime createdAt;
   final GeoPoint? location;
   final List<String> badges;
@@ -19,6 +21,8 @@ class UserModel {
     required this.fullName,
     required this.phoneNumber,
     required this.bloodType,
+    this.gender,
+    this.dateOfBirth,
     required this.createdAt,
     this.location,
     required this.badges,
@@ -35,6 +39,9 @@ class UserModel {
       'fullName': fullName,
       'phoneNumber': phoneNumber,
       'bloodType': bloodType,
+      'gender': gender,
+      'dateOfBirth':
+          dateOfBirth != null ? Timestamp.fromDate(dateOfBirth!) : null,
       'createdAt': Timestamp.fromDate(createdAt),
       'location': location,
       'badges': badges,
@@ -52,6 +59,10 @@ class UserModel {
       fullName: json['fullName'] as String,
       phoneNumber: json['phoneNumber'] as String,
       bloodType: json['bloodType'] as String,
+      gender: json['gender'] as String?,
+      dateOfBirth: json['dateOfBirth'] != null
+          ? (json['dateOfBirth'] as Timestamp).toDate()
+          : null,
       createdAt: (json['createdAt'] as Timestamp).toDate(),
       location: json['location'] as GeoPoint?,
       badges: List<String>.from(json['badges'] ?? []),
@@ -66,6 +77,8 @@ class UserModel {
     String? fullName,
     String? phoneNumber,
     String? bloodType,
+    String? gender,
+    DateTime? dateOfBirth,
     GeoPoint? location,
     List<String>? badges,
     int? totalDonations,
@@ -78,6 +91,8 @@ class UserModel {
       fullName: fullName ?? this.fullName,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       bloodType: bloodType ?? this.bloodType,
+      gender: gender ?? this.gender,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       createdAt: createdAt,
       location: location ?? this.location,
       badges: badges ?? this.badges,
@@ -87,9 +102,41 @@ class UserModel {
     );
   }
 
-  static fromMap(Map<String, dynamic> map, String id) {}
+  static UserModel fromMap(Map<String, dynamic> map, String id) {
+    return UserModel(
+      id: id,
+      email: map['email'] as String,
+      fullName: map['fullName'] as String,
+      phoneNumber: map['phoneNumber'] as String,
+      bloodType: map['bloodType'] as String,
+      gender: map['gender'] as String?,
+      dateOfBirth: map['dateOfBirth'] != null
+          ? (map['dateOfBirth'] as Timestamp).toDate()
+          : null,
+      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      location: map['location'] as GeoPoint?,
+      badges: List<String>.from(map['badges'] ?? []),
+      totalDonations: map['totalDonations'] as int,
+      nextDonationDate: (map['nextDonationDate'] as Timestamp).toDate(),
+      isOrganDonor: map['isOrganDonor'] as bool,
+    );
+  }
 
   Map<Object, Object?> toMap() {
-    return {};
+    return {
+      'email': email,
+      'fullName': fullName,
+      'phoneNumber': phoneNumber,
+      'bloodType': bloodType,
+      'gender': gender,
+      'dateOfBirth':
+          dateOfBirth != null ? Timestamp.fromDate(dateOfBirth!) : null,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'location': location,
+      'badges': badges,
+      'totalDonations': totalDonations,
+      'nextDonationDate': Timestamp.fromDate(nextDonationDate),
+      'isOrganDonor': isOrganDonor,
+    };
   }
 }

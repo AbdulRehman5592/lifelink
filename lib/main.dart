@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lifelink/models/donor_model.dart';
 import 'package:lifelink/providers/organ_provider.dart';
+import 'package:lifelink/widgets/auth_gate.dart';
 import 'package:provider/provider.dart';
 import 'package:lifelink/screens/home_screen.dart';
 import 'package:lifelink/widgets/custom_appbar.dart';
@@ -55,7 +56,7 @@ class MyApp extends StatelessWidget {
         textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme),
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const MainScreen(),
+      home:const AuthGate(),
       debugShowCheckedModeBanner: false,
     );
   }
