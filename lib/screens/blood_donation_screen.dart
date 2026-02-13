@@ -310,33 +310,22 @@ class BloodDonationScreen extends StatelessWidget {
   }
 
   Widget _buildSearchBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+    return SearchBar(
+      hintText: 'Search donors or hospitals...',
+      hintStyle: WidgetStatePropertyAll(
+        GoogleFonts.poppins(color: Colors.grey),
       ),
-      child: Row(
-        children: [
-          const Icon(Icons.search, color: Colors.grey),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search donors or hospitals...',
-                hintStyle: GoogleFonts.poppins(color: Colors.grey),
-                border: InputBorder.none,
-              ),
-            ),
-          ),
-        ],
+      leading: const Icon(Icons.search, color: Colors.grey),
+      backgroundColor: const WidgetStatePropertyAll(Colors.white),
+      elevation: const WidgetStatePropertyAll(2),
+      shape: WidgetStatePropertyAll(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      side: const WidgetStatePropertyAll<BorderSide?>(BorderSide.none),
+      padding: const WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: 16),
       ),
     );
   }

@@ -11,9 +11,11 @@ import 'package:lifelink/widgets/custom_appbar.dart';
 import 'providers/auth_provider.dart';
 import 'providers/blood_donation_provider.dart';
 import 'providers/bottom_nav_provider.dart';
+import 'providers/chatbot_provider.dart';
 import 'providers/medicine_provider.dart';
 import 'providers/profile_provider.dart';
 import 'screens/blood_donation_screen.dart';
+import 'screens/chatbot_screen.dart';
 import 'screens/medicine_screen.dart';
 import 'screens/organ_screen.dart';
 import 'screens/profile_screen.dart';
@@ -37,6 +39,7 @@ void main() async {
         ),
         ChangeNotifierProvider(create: (_) => OrganProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => ChatbotProvider()),
       ],
       child: const MyApp(),
     ),
@@ -70,6 +73,7 @@ class MainScreen extends StatelessWidget {
     BloodDonationScreen(),
     MedicineScreen(),
     OrganScreen(),
+    ChatbotScreen(),
     ProfileScreen(),
   ];
 
@@ -108,6 +112,10 @@ class BottomNavBar extends StatelessWidget {
           label: 'Medicine',
         ),
         BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Organ'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.smart_toy_outlined),
+          label: 'AI Chat',
+        ),
         BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
       ],
     );

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lifelink/screens/chatbot_screen.dart';
+import 'package:lifelink/screens/medicine_screen.dart';
+import 'package:lifelink/screens/organ_screen.dart';
 
 import 'blood_donation_screen.dart';
 
@@ -125,23 +128,53 @@ class HomeScreen extends StatelessWidget {
             const Color(0xFFFFE5E5),
           ),
         ),
-        _buildActionCard(
-          context,
-          'Medicine',
-          Icons.medication,
-          const Color(0xFFE5E5FF),
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MedicineScreen(),
+              ),
+            );
+          },
+          child: _buildActionCard(
+            context,
+            'Medicine',
+            Icons.medication,
+            const Color(0xFFE5E5FF),
+          ),
         ),
-        _buildActionCard(
-          context,
-          'Organ',
-          Icons.favorite_outline,
-          const Color(0xFFE5F9FF),
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const OrganScreen(),
+              ),
+            );
+          },
+          child: _buildActionCard(
+            context,
+            'Organ',
+            Icons.favorite_outline,
+            const Color(0xFFE5F9FF),
+          ),
         ),
-        _buildActionCard(
-          context,
-          'Emergency',
-          Icons.warning,
-          const Color(0xFFFFF4E5),
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ChatbotScreen(),
+              ),
+            );
+          },
+          child: _buildActionCard(
+            context,
+            'AI Chat',
+            Icons.smart_toy_outlined,
+            const Color(0xFFE0F2F1),
+          ),
         ),
       ],
     );
@@ -183,6 +216,8 @@ class HomeScreen extends StatelessWidget {
         return Colors.purple;
       case 'Organ':
         return Colors.blue;
+      case 'AI Chat':
+        return const Color(0xFF00A89D);
       case 'Emergency':
         return Colors.orange;
       default:
