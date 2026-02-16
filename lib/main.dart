@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lifelink/models/donor_model.dart';
@@ -23,8 +24,11 @@ import 'services/firebase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final rc=FirebaseRemoteConfig.instance;
 
   // Initialize Firebase
+  await rc.setConfigSettings(RemoteConfigSettings(fetchTimeout: const Duration(seconds: 10), minimumFetchInterval: const Duration(seconds: 10)));
+  await rc.fetchAndActivate();
   await FirebaseService.initialize();
   await FirestoreInitializer.initializeSampleData();
   await FirestoreInitializer.seedSampleDonors();
