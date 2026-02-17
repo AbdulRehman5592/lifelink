@@ -24,11 +24,36 @@ import 'services/firebase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final rc=FirebaseRemoteConfig.instance;
+  final rc = FirebaseRemoteConfig.instance;
 
-  // Initialize Firebase
-  await rc.setConfigSettings(RemoteConfigSettings(fetchTimeout: const Duration(seconds: 10), minimumFetchInterval: const Duration(seconds: 10)));
-  await rc.fetchAndActivate();
+  // Configure Remote Config settings
+  await rc.setConfigSettings(
+    RemoteConfigSettings(
+      fetchTimeout: const Duration(seconds: 10),
+      minimumFetchInterval: const Duration(seconds: 10),
+    ),
+  );
+
+  // Set default values for Remote Config parameters
+  await rc.setDefaults({
+    'llm_api_key': '', // Placeholder for LLM API key
+    'llm_api_endpoint': 'https://api.openai.com/v1/chat/completions', // Default endpoint
+    'llm_model_name': 'gpt-3.5-turbo', // Default model
+    'chatbot_enabled': true, // Enable/disable chatbot feature
+    'max_retries': '3', // Maximum API retries
+  });
+
+  // Fetch and activate remote config
+  try {
+    await rc.fetchAndActivate();
+    debugPrint('Remote Config fetched successfully');
+    debugPrint('LLM Endpoint: ${rc.getString('llm_api_endpoint')}');
+    debugPrint('LLM Model: ${rc.getString('llm_model_name')}');
+  } catch (e) {
+    debugPrint('Failed to fetch Remote Config: $e');
+    // Fallback to default values
+  }
+
   await FirebaseService.initialize();
   await FirestoreInitializer.initializeSampleData();
   await FirestoreInitializer.seedSampleDonors();

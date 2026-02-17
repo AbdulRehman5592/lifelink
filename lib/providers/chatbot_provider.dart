@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ChatMessage {
   final String id;
@@ -43,6 +46,9 @@ class ChatbotProvider with ChangeNotifier {
     ),
   ];
 
+  // Remote Config instance
+  final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
+
   final List<String> _suggestedQuestions = [
     'How can I donate blood?',
     'Find nearby medicine banks',
@@ -81,12 +87,85 @@ class ChatbotProvider with ChangeNotifier {
     _isTyping = true;
     notifyListeners();
 
-    // Simulate AI response
+    // Check if chatbot is enabled via Remote Config
+    final chatbotEnabled = _remoteConfig.getBool('chatbot_enabled');
+
+    if (chatbotEnabled) {
+      _fetchLLMResponse(text);
+    } else {
+      _getSimulatedResponse(text);
+    }
+  }
+
+  /// Fetch response from LLM API using Remote Config values
+  Future<void> _fetchLLMResponse(String userMessage) async {
+    final apiKey = _remoteConfig.getString('llm_api_key');
+    final apiEndpoint = _remoteConfig.getString('llm_api_endpoint');
+    final modelName = _remoteConfig.getString('llm_model_name');
+
+    // If no API key is configured, fall back to simulated response
+    if (apiKey.isEmpty) {
+      _getSimulatedResponse(userMessage);
+      return;
+    }
+
+    try {
+      // Build conversation history for context
+      final messages = <Map<String, dynamic>>[
+        {
+          'role': 'system',
+          'content': 'You are LifeLink AI assistant, a helpful assistant for a healthcare platform focused on blood donation, medicine sharing, and organ donation. Provide accurate, empathetic responses in a friendly tone.'
+        },
+        ..._messages.take(10).map((msg) => {
+          'role': msg.role,
+          'content': msg.content,
+        }),
+      ];
+
+      final response = await http.post(
+        Uri.parse(apiEndpoint),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $apiKey',
+        },
+        body: jsonEncode({
+          'model': modelName,
+          'messages': messages,
+          'max_tokens': 500,
+          'temperature': 0.7,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final botMessage = ChatMessage(
+          id: (DateTime.now().millisecondsSinceEpoch + 1).toString(),
+          role: 'assistant',
+          content: data['choices'][0]['message']['content'].toString().trim(),
+          timestamp: DateTime.now(),
+        );
+
+        _messages.add(botMessage);
+      } else {
+        throw Exception('API Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('LLM API Error: $e');
+      // Fall back to simulated response on error
+      _getSimulatedResponse(userMessage);
+    }
+
+    _isTyping = false;
+    notifyListeners();
+  }
+
+  /// Get simulated response (fallback when API is unavailable)
+  void _getSimulatedResponse(String question) {
     Future.delayed(const Duration(milliseconds: 1200), () {
       final botMessage = ChatMessage(
         id: (DateTime.now().millisecondsSinceEpoch + 1).toString(),
         role: 'assistant',
-        content: _getSimulatedResponse(text),
+        content: _getSimulatedResponseText(question),
         timestamp: DateTime.now(),
       );
 
@@ -96,7 +175,7 @@ class ChatbotProvider with ChangeNotifier {
     });
   }
 
-  String _getSimulatedResponse(String question) {
+  String _getSimulatedResponseText(String question) {
     final q = question.toLowerCase();
 
     if (q.contains('blood') || q.contains('donate')) {
