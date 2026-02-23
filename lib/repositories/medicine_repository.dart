@@ -8,17 +8,21 @@ class MedicineRepository {
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
   // Get all available medicines
-  Stream<List<MedicineModel>> getMedicines() {
-    return _firestore
+  Stream<List<MedicineModel>> getMedicines({String? category}) {
+    Query<Map<String, dynamic>> query = _firestore
         .collection('medicines')
-        .where('status', isEqualTo: 'available')
-        .orderBy('expiry')
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => MedicineModel.fromMap(doc.data(), doc.id))
-              .toList(),
-        );
+        .where('status', isEqualTo: 'available');
+
+    // Filter by category if specified
+    if (category != null && category.isNotEmpty && category != 'all') {
+      query = query.where('category', isEqualTo: category);
+    }
+
+    return query.orderBy('expiry').snapshots().map(
+      (snapshot) => snapshot.docs
+          .map((doc) => MedicineModel.fromMap(doc.data(), doc.id))
+          .toList(),
+    );
   }
 
   // Get medicines by category
