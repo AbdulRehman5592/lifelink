@@ -34,7 +34,36 @@ void main() async {
         ChangeNotifierProvider(create: (_) => BottomNavProvider()),
         ChangeNotifierProvider(create: (_) => BloodDonationProvider()),
         ChangeNotifierProvider(
-          create: (context) => MedicineProvider()..initialize(),
+          create: (context) {
+            // Create MedicineProvider
+            final medicineProvider = MedicineProvider();
+
+            // Listen to AuthProvider for user changes
+            final authProvider = context.read<AuthProvider>();
+
+            // Update medicine provider with current user info
+            final currentUser = authProvider.currentUser;
+            if (currentUser != null) {
+              medicineProvider.updateUserInfo(currentUser.id, currentUser.fullName);
+            }
+
+            // Create and store auth listener for cleanup
+            final listener = () {
+              final user = authProvider.currentUser;
+              if (user != null) {
+                medicineProvider.updateUserInfo(user.id, user.fullName);
+              } else {
+                medicineProvider.clearUserInfo();
+              }
+            };
+            medicineProvider.setAuthListener(listener);
+            authProvider.addListener(listener);
+
+            // Initialize medicine provider
+            medicineProvider.initialize();
+
+            return medicineProvider;
+          },
         ),
         ChangeNotifierProvider(create: (_) => OrganProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),

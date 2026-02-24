@@ -110,14 +110,16 @@ class MedicineModel {
   factory MedicineModel.fromFormData(
     Map<String, dynamic> formData,
     String donorName,
+    String donorId,
   ) {
     return MedicineModel(
       name: formData['medicineName'] ?? '',
       generic: formData['genericName'] ?? formData['medicineName'] ?? '',
-      category: formData['category'] ?? 'other', // Use form category
+      category: formData['category'] ?? 'other',
       quantity: int.tryParse(formData['quantity'] ?? '0') ?? 0,
       expiry: formData['expiryDate'] ?? '',
       donor: donorName,
+      donorId: donorId,
       distance: 0.0,
       verified: false,
       postedDate: DateTime.now(),

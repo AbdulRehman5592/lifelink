@@ -6,77 +6,63 @@ import '../models/medicine_model.dart';
 class MedicineRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
+  
+CollectionReference<MedicineModel> get medicinesRef => _firestore.collection('medicines').withConverter<MedicineModel>(
+  fromFirestore: (snapshot, _) =>
+      MedicineModel.fromMap(snapshot.data()!, snapshot.id),
+  toFirestore: (medicine, _) => medicine.toMap(),
+);
 
-  // Get all available medicines
+
+  /// Get all available medicines, optionally filtered by category
+  /// If category is null, empty, or 'all', returns all available medicines
   Stream<List<MedicineModel>> getMedicines({String? category}) {
-    Query<Map<String, dynamic>> query = _firestore
-        .collection('medicines')
-        .where('status', isEqualTo: 'available');
+    Query<MedicineModel> query = medicinesRef.where('status', isEqualTo: 'available');
 
-    // Filter by category if specified
     if (category != null && category.isNotEmpty && category != 'all') {
       query = query.where('category', isEqualTo: category);
     }
 
     return query.orderBy('expiry').snapshots().map(
-      (snapshot) => snapshot.docs
-          .map((doc) => MedicineModel.fromMap(doc.data(), doc.id))
-          .toList(),
+      (snapshot) => snapshot.docs.map((doc) => doc.data()).toList(),
     );
   }
 
-  // Get medicines by category
+  /// Get medicines by category - deprecated, use getMedicines(category: ...) instead
+  @Deprecated('Use getMedicines(category: ...) instead')
   Stream<List<MedicineModel>> getMedicinesByCategory(String category) {
-    if (category == 'all') {
-      return getMedicines();
-    }
-
-    return _firestore
-        .collection('medicines')
-        .where('status', isEqualTo: 'available')
-        .where('category', isEqualTo: category)
-        .orderBy('expiry')
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => MedicineModel.fromMap(doc.data(), doc.id))
-              .toList(),
-        );
+    return getMedicines(category: category);
   }
+
 
   // Get medicines by donor
   Stream<List<MedicineModel>> getMedicinesByDonor(String donorId) {
-    return _firestore
-        .collection('medicines')
-        .where('donorId', isEqualTo: donorId)
-        .orderBy('postedDate', descending: true)
+    final query=medicinesRef.where('donorId', isEqualTo: donorId).orderBy('postedDate', descending: true);
+    return query
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
-              .map((doc) => MedicineModel.fromMap(doc.data(), doc.id))
+              .map((doc) => doc.data())
               .toList(),
         );
   }
 
   // Add medicine
   Future<String> addMedicine(MedicineModel medicine) async {
-    final docRef = await _firestore
-        .collection('medicines')
-        .add(medicine.toMap());
+    final docRef = await medicinesRef.add(medicine);
     return docRef.id;
   }
 
   // Update medicine
   Future<void> updateMedicine(String medicineId, MedicineModel medicine) async {
-    await _firestore
-        .collection('medicines')
+    await medicinesRef
         .doc(medicineId)
         .update(medicine.toMap());
   }
 
   // Delete medicine
   Future<void> deleteMedicine(String medicineId) async {
-    await _firestore.collection('medicines').doc(medicineId).delete();
+    await medicinesRef.doc(medicineId).delete();
   }
 
   // Upload image
